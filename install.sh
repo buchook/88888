@@ -110,11 +110,11 @@ echo 'echo -e ""' >> .bashrc
 apt-get -y install nginx php5-fpm php5-cli
 rm /etc/nginx/sites-enabled/default
 rm /etc/nginx/sites-available/default
-wget -O /etc/nginx/nginx.conf "https://raw.githubusercontent.com/Apeachsan91/debian7/master/nginx.conf"
+wget -O /etc/nginx/nginx.conf "https://raw.githubusercontent.com/buchook/88888/master/nginx.conf"
 mkdir -p /home/vps/public_html
-wget -O /home/vps/public_html/index.html "https://raw.githubusercontent.com/Apeachsan91/debian7/master/index.html"
+wget -O /home/vps/public_html/index.html "https://raw.githubusercontent.com/buchook/88888/master/index.html"
 echo "<?php phpinfo(); ?>" > /home/vps/public_html/info.php
-wget -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/Apeachsan91/debian7/master/vps.conf"
+wget -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/buchook/88888/master/vps.conf"
 sed -i 's/listen = \/var\/run\/php5-fpm.sock/listen = 127.0.0.1:9000/g' /etc/php5/fpm/pool.d/www.conf
 
 #install OpenVPN
@@ -122,7 +122,7 @@ apt-get -y install openvpn iptables openssl
 cp -R /usr/share/doc/openvpn/examples/easy-rsa/ /etc/openvpn
 # easy-rsa
 if [[ ! -d /etc/openvpn/easy-rsa/2.0/ ]]; then
-	wget --no-check-certificate -O ~/easy-rsa.tar.gz https://github.com/Apeachsan91/debian7/raw/master/easy-rsa-2.2.0_master.tar.gz
+	wget --no-check-certificate -O ~/easy-rsa.tar.gz https://raw.githubusercontent.com/buchook/88888/master/easy-rsa-2.2.0_master.tar.gz
     tar xzf ~/easy-rsa.tar.gz -C ~/
     mkdir -p /etc/openvpn/easy-rsa/2.0/
     cp ~/easy-rsa-2.2.0_master/easy-rsa/2.0/* /etc/openvpn/easy-rsa/2.0/
@@ -258,17 +258,17 @@ mkdir /var/lib/premium-script
 /etc/init.d/pptpd restart
 
 # install badvpn
-wget -O /usr/bin/badvpn-udpgw "https://github.com/Apeachsan91/debian7/raw/master/badvpn-udpgw"
+wget -O /usr/bin/badvpn-udpgw "https://raw.githubusercontent.com/buchook/88888/master/badvpn-udpgw"
 if [ "$OS" == "x86_64" ]; then
-  wget -O /usr/bin/badvpn-udpgw "https://github.com/Apeachsan91/debian7/raw/master/badvpn-udpgw64"
+  wget -O /usr/bin/badvpn-udpgw "https://raw.githubusercontent.com/buchook/88888/master/badvpn-udpgw64"
 fi
 sed -i '$ i\screen -AmdS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7300' /etc/rc.local
 chmod +x /usr/bin/badvpn-udpgw
 screen -AmdS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7300
 
 # install mrtg
-wget -O /etc/snmp/snmpd.conf "https://raw.githubusercontent.com/Apeachsan91/debian7/master/snmpd.conf"
-wget -O /root/mrtg-mem.sh "https://raw.githubusercontent.com/Apeachsan91/debian7/master/mrtg-mem.sh"
+wget -O /etc/snmp/snmpd.conf "https://raw.githubusercontent.com/buchook/88888/master/snmpd.conf"
+wget -O /root/mrtg-mem.sh "https://raw.githubusercontent.com/buchook/88888/master/mrtg-mem.sh"
 chmod +x /root/mrtg-mem.sh
 cd /etc/snmp/
 sed -i 's/TRAPDRUN=no/TRAPDRUN=yes/g' /etc/default/snmpd
@@ -276,7 +276,7 @@ service snmpd restart
 snmpwalk -v 1 -c public localhost 1.3.6.1.4.1.2021.10.1.3.1
 mkdir -p /home/vps/public_html/mrtg
 cfgmaker --zero-speed 100000000 --global 'WorkDir: /home/vps/public_html/mrtg' --output /etc/mrtg.cfg public@localhost
-curl "https://raw.githubusercontent.com/Apeachsan91/debian7/master/mrtg.conf" >> /etc/mrtg.cfg
+curl "https://raw.githubusercontent.com/buchook/88888/master/mrtg.conf" >> /etc/mrtg.cfg
 sed -i 's/WorkDir: \/var\/www\/mrtg/# WorkDir: \/var\/www\/mrtg/g' /etc/mrtg.cfg
 sed -i 's/# Options\[_\]: growright, bits/Options\[_\]: growright/g' /etc/mrtg.cfg
 indexmaker --output=/home/vps/public_html/mrtg/index.html /etc/mrtg.cfg
@@ -292,22 +292,22 @@ sed -i 's/Port 22/Port  22/g' /etc/ssh/sshd_config
 service ssh restart
 
 update zLib
-wget "https://github.com/Apeachsan91/debian82/raw/master/zlib-1.2.11.tar"
+wget "https://raw.githubusercontent.com/buchook/88888/master/zlib-1.2.11.tar"
 tar -xf zlib-1.2.11.tar
 cd zlib-1.2.11
 ./configure --prefix=/usr ----sysconfdir=/usr/include && make && make install
 
 
 # update OpenSSL
-wget "https://github.com/Apeachsan91/debian82/raw/master/openssl-1.1.0f.tar"
+wget "https://raw.githubusercontent.com/buchook/88888/master/openssl-1.1.0f.tar"
 tar -xf openssl-1.1.0f.tar
 cd openssl-1.1.0f
 ./configure --prefix=/usr --sysconfdir=/etc/ssl --libdir=lib && make && make test && make install
 make MANSUFFIX=ssl install && mv -v /usr/share/doc/openssl{,-1.1.0f} && cp -vfr doc/* /usr/share/doc/openssl-1.1.0f
 
 # update OpenSSH
-wget "https://raw.githubusercontent.com/Apeachsan91/debian82/master/openssh-7.5p1-openssl-1.1.0-1.patch"
-wget "https://github.com/Apeachsan91/debian82/raw/master/openssh-7.5p1.tar.gz"
+wget "https://raw.githubusercontent.com/buchook/88888/master/openssh-7.5p1-openssl-1.1.0-1.patch"
+wget "https://raw.githubusercontent.com/buchook/88888/master/openssh-7.5p1.tar.gz"
 tar -xf openssh-7.5p1.tar.gz
 cd openssh-7.5p1
 patch -Np1 -i ../openssh-7.5p1-openssl-1.1.0-1.patch && ./configure --prefix=/usr --sysconfdir=/etc/ssh --with-md5-passwords && make && make install
@@ -329,7 +329,7 @@ service dropbear restart
 #Upgrade to Dropbear 2016
 cd
 apt-get install zlib1g-dev
-wget https://github.com/Apeachsan91/debian7/raw/master/dropbear-2017.75.tar.bz2
+wget https://raw.githubusercontent.com/buchook/88888/master/dropbear-2017.75.tar.bz2
 bzip2 -cd dropbear-2017.75.tar.bz2 | tar xvf -
 cd dropbear-2017.75
 ./configure
@@ -341,7 +341,7 @@ service dropbear restart
 
 # install vnstat gui
 cd /home/vps/public_html/
-wget https://github.com/Apeachsan91/debian7/raw/master/vnstat_php_frontend-1.5.1.tar.gz
+wget https://raw.githubusercontent.com/buchook/88888/master/vnstat_php_frontend-1.5.1.tar.gz
 tar xf vnstat_php_frontend-1.5.1.tar.gz
 rm vnstat_php_frontend-1.5.1.tar.gz
 mv vnstat_php_frontend-1.5.1 vnstat
@@ -421,7 +421,7 @@ service squid3 restart
 
 # install webmin
 cd
-wget "https://github.com/Apeachsan91/debian7/raw/master/webmin_1.801_all.deb"
+wget "https://raw.githubusercontent.com/buchook/88888/master/webmin_1.801_all.deb"
 dpkg --install webmin_1.801_all.deb;
 apt-get -y -f install;
 sed -i 's/ssl=1/ssl=0/g' /etc/webmin/miniserv.conf
@@ -462,8 +462,8 @@ iptables-restore < /etc/iptables.up.rules
 
 # download script
 cd
-wget https://raw.githubusercontent.com/Apeachsan91/debian7/master/update.sh -O - -o /dev/null|sh
-wget https://raw.githubusercontent.com/Apeachsan91/debian7/master/update2 -O - -o /dev/null|sh
+wget https://raw.githubusercontent.com/buchook/88888/master/update.sh -O - -o /dev/null|sh
+wget https://raw.githubusercontent.com/buchook/88888/master/update2 -O - -o /dev/null|sh
 
 # finalisasi
 apt-get -y autoremove
