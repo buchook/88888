@@ -20,7 +20,7 @@ cat > /root/limit.sh <<END3
 END3
 
 cd /usr/local/bin
-wget -O premium-script.zip "https://github.com/Apeachsan91/debian7/raw/master/premium-script.zip" 
+wget -O premium-script.zip "https://raw.githubusercontent.com/buchook/88888/master/premium-script.zip" 
 unzip premium-script.zip
 rm -f premium-script.zip
 
