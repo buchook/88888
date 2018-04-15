@@ -1,35 +1,21 @@
-if [[ $USER != "root" ]]; then
-	echo "Maaf, Anda harus menjalankan ini sebagai root"
-	exit
-fi
+#!/bin/sh
 
+#Requirement
+if [ ! -e /usr/bin/curl ]; then
+    apt-get -y update && apt-get -y upgrade
+	apt-get -y install curl
+fi
 # initialisasi var
 export DEBIAN_FRONTEND=noninteractive
 OS=`uname -m`;
-#MYIP=$(wget -qO- ipv4.icanhazip.com);
-
-# get the VPS IP
-#ip=`ifconfig venet0:0 | grep 'inet addr' | awk {'print $2'} | sed s/.*://`
-
-#MYIP=`ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0' | head -n1`;
-MYIP=$(ifconfig | grep 'inet addr:' | grep -v inet6 | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | cut -d: -f2 | awk '{ print $1}' | head -1)
-if [ "$MYIP" = "" ]; then
-	MYIP=$(wget -qO- ipv4.icanhazip.com)
+MYIP=$(curl -4 icanhazip.com)
+if [ $MYIP = "" ]; then
+   MYIP=`ifconfig | grep 'inet addr:' | grep -v inet6 | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | cut -d: -f2 | awk '{ print $1}' | head -1`;
 fi
 MYIP2="s/xxxxxxxxx/$MYIP/g";
-ether=`ifconfig | cut -c 1-8 | sort | uniq -u | grep venet0 | grep -v venet0:`
-if [[ $ether = "" ]]; then
-        ether=eth0
-fi
 
-#vps="zvur";
-vps="blangkon";
-
-#if [[ $vps = "zvur" ]]; then
-	#source="http://"
-#else
-	source="http://www.borneobesthosting.me/Debian7"
-#fi
+# go to root
+cd
 
 # detail
 country=MY
@@ -40,8 +26,6 @@ organizationalunit=InterpassGroup
 commonname=Hake
 email=-
 
-# go to root
-cd
 
 # disable ipv6
 echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
@@ -60,240 +44,24 @@ apt-get update;apt-get -y install wget curl;
 ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
 
 # set repo
-ver=`cat /etc/debian_version`
-if [ $ver = '6.0' ]
-then
-debver='6'
-elif [ $ver = '6.1' ]
-then
-debver='6'
-elif [ $ver = '6.2' ]
-then
-debver='6'
-elif [ $ver = '6.3' ]
-then
-debver='6'
-elif [ $ver = '6.4' ]
-then
-debver='6'
-elif [ $ver = '6.5' ]
-then
-debver='6'
-elif [ $ver = '6.6' ]
-then
-debver='6'
-elif [ $ver = '6.7' ]
-then
-debver='6'
-elif [ $ver = '6.8' ]
-then
-debver='6'
-elif [ $ver = '6.9' ]
-then
-debver='6'
-elif [ $ver = '7.0' ]
-then no
-debver='7'
-elif [ $ver = '7.1' ]
-then
-debver='7'
-elif [ $ver = '7.2' ]
-then
-debver='7'
-elif [ $ver = '7.3' ]
-then
-debver='7'
-elif [ $ver = '7.4' ]
-then
-debver='7'
-elif [ $ver = '7.5' ]
-then
-debver='7'
-elif [ $ver = '7.6' ]
-then
-debver='7'
-elif [ $ver = '7.7' ]
-then
-debver='7'
-elif [ $ver = '7.8' ]
-then
-debver='7'
-elif [ $ver = '7.9' ]
-then
-debver='7'
-elif [ $ver = '8.0' ]
-then
-debver='8'
-elif [ $ver = '8.1' ]
-then
-debver='8'
-elif [ $ver = '8.2' ]
-then
-debver='8'
-elif [ $ver = '8.3' ]
-then
-debver='8'
-elif [ $ver = '8.4' ]
-then
-debver='8'
-elif [ $ver = '8.5' ]
-then
-debver='8'
-elif [ $ver = '8.6' ]
-then
-debver='8'
-elif [ $ver = '8.7' ]
-then
-debver='8'
-elif [ $ver = '8.8' ]
-then
-debver='8'
-elif [ $ver = '8.9' ]
-then
-debver='8'
-else
-debver='Null'
-fi
-if [ $debver = '6' ]; then
-	if [[ "$loc" = "I" ]]; then
-		wget -O /etc/apt/sources.list $source/sources.list.debian7
-		wget $source/dotdeb.gpg
-		cat dotdeb.gpg | apt-key add -;rm dotdeb.gpg
-		cd /root
-		wget http://www.webmin.com/jcameron-key.asc
-		apt-key add jcameron-key.asc
-		cd
-		apt-get update
-	elif [[ "$loc" = "L" ]]; then
-		wget -O /etc/apt/sources.list $source/sources.list.debian7.local
-		wget $source/dotdeb.gpg
-		apt-key add dotdeb.gpg
-		rm dotdeb.gpg
-		apt-get install python-software-properties 
-		apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0xcbcb082a1bb943db
-		cd /root
-		wget http://www.webmin.com/jcameron-key.asc
-		apt-key add jcameron-key.asc
-		cd
-		apt-get update
-	elif [[ "$loc" = "i" ]]; then
-		wget -O /etc/apt/sources.list $source/sources.list.debian7
-		wget $source/dotdeb.gpg
-		cat dotdeb.gpg | apt-key add -;rm dotdeb.gpg
-		cd /root
-		wget http://www.webmin.com/jcameron-key.asc
-		apt-key add jcameron-key.asc
-		cd
-		apt-get update
-    elif [[ "$loc" = "l" ]]; then
-		wget -O /etc/apt/sources.list $source/sources.list.debian7.local
-		wget $source/dotdeb.gpg
-		apt-key add dotdeb.gpg
-		rm dotdeb.gpg
-		apt-get install python-software-properties 
-		apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0xcbcb082a1bb943db
-		cd /root
-		wget http://www.webmin.com/jcameron-key.asc
-		apt-key add jcameron-key.asc
-		cd
-		apt-get update
-	fi
-elif [ $debver = '7' ]; then
-	if [[ "$loc" = "I" ]]; then
-		wget -O /etc/apt/sources.list $source/sources.list.debian7
-		wget $source/dotdeb.gpg
-		cat dotdeb.gpg | apt-key add -;rm dotdeb.gpg
-		cd /root
-		wget http://www.webmin.com/jcameron-key.asc
-		apt-key add jcameron-key.asc
-		cd
-		apt-get update
-    elif [[ "$loc" = "L" ]]; then
-		wget -O /etc/apt/sources.list $source/sources.list.debian7.local
-		wget $source/dotdeb.gpg
-		apt-key add dotdeb.gpg
-		rm dotdeb.gpg
-		apt-get install python-software-properties 
-		apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0xcbcb082a1bb943db
-		cd /root
-		wget http://www.webmin.com/jcameron-key.asc
-		apt-key add jcameron-key.asc
-		cd
-		apt-get update
-	elif [[ "$loc" = "i" ]]; then
-		wget -O /etc/apt/sources.list $source/sources.list.debian7
-		wget $source/file/dotdeb.gpg
-		cat dotdeb.gpg | apt-key add -;rm dotdeb.gpg
-		cd /root
-		wget http://www.webmin.com/jcameron-key.asc
-		apt-key add jcameron-key.asc
-		cd
-    apt-get update
-	elif [[ "$loc" = "l" ]]; then
-		wget -O /etc/apt/sources.list $source/sources.debian7.local
-		wget $source/dotdeb.gpg
-		apt-key add dotdeb.gpg
-		rm dotdeb.gpg
-		apt-get install python-software-properties 
-		apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0xcbcb082a1bb943db
-		cd /root
-		wget http://www.webmin.com/jcameron-key.asc
-		apt-key add jcameron-key.asc
-		cd
-		apt-get update
-fi  	
-elif [ $debver = '8' ]; then
-	if [[ "$loc" = "I" ]]; then
-		wget -O /etc/apt/sources.list $source/sources.list.debian8
-		wget $source/dotdeb.gpg
-		cat dotdeb.gpg | apt-key add -;rm dotdeb.gpg
-		cd /root
-		wget http://www.webmin.com/jcameron-key.asc
-		apt-key add jcameron-key.asc
-		cd
-		apt-get update
-	elif [[ "$loc" = "L" ]]; then
-		wget -O /etc/apt/sources.list $source/sources.list.debian8.local
-		wget $source/dotdeb.gpg
-		apt-key add dotdeb.gpg
-		rm dotdeb.gpg
-		apt-get install python-software-properties 
-		apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0xcbcb082a1bb943db
-		cd /root
-		wget http://www.webmin.com/jcameron-key.asc
-		apt-key add jcameron-key.asc
-		cd
-    apt-get update
-	elif [[ "$loc" = "i" ]]; then
-		wget -O /etc/apt/sources.list $source/sources.list.debian8
-		wget $source/dotdeb.gpg
-		cat dotdeb.gpg | apt-key add -;rm dotdeb.gpg
-		cd /root
-		wget http://www.webmin.com/jcameron-key.asc
-		apt-key add jcameron-key.asc
-		cd
-		apt-get update
-	elif [[ "$loc" = "l" ]]; then
-		wget -O /etc/apt/sources.list $source/sources.list.debian8.local
-		wget $source/dotdeb.gpg
-		apt-key add dotdeb.gpg
-		rm dotdeb.gpg
-		apt-get install python-software-properties 
-		apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0xcbcb082a1bb943db
-		cd /root
-		wget http://www.webmin.com/jcameron-key.asc
-		apt-key add jcameron-key.asc
-		cd
-		apt-get update
-	fi
-else
-	cd
-fi
-
-gpg --keyserver pgpkeys.mit.edu --recv-key  9D6D8F6BC857C906      
-gpg -a --export 9D6D8F6BC857C906 | sudo apt-key add -
-gpg --keyserver pgpkeys.mit.edu --recv-key  7638D0442B90D010      
-gpg -a --export 7638D0442B90D010 | sudo apt-key add -
+cat > /etc/apt/sources.list <<END2
+deb http://kambing.ui.ac.id/debian/ jessie main
+deb-src http://kambing.ui.ac.id/debian/ jessie main
+deb http://kambing.ui.ac.id/debian/ jessie-updates main
+deb-src http://kambing.ui.ac.id/debian/ jessie-updates main
+deb http://kambing.ui.ac.id/debian-security/ jessie/updates main contrib non-free
+deb-src http://kambing.ui.ac.id/debian-security/ jessie/updates main contrib non-free
+deb http://kambing.ui.ac.id/dotdeb/ jessie all
+deb-src http://kambing.ui.ac.id/dotdeb/ jessie all
+deb http://kambing.ui.ac.id/dotdeb/ jessie-php55 all
+deb-src http://kambing.ui.ac.id/dotdeb/ jessie-php55 all
+deb http://mariadb.biz.net.id//repo/5.5/debian jessie main
+deb-src http://mariadb.biz.net.id//repo/5.5/debian jessie main
+deb http://download.webmin.com/download/repository sarge contrib
+deb http://webmin.mirror.somersettechsolutions.co.uk/repository sarge contrib
+END2
+wget "http://www.dotdeb.org/dotdeb.gpg"
+cat dotdeb.gpg | apt-key add -;rm dotdeb.gpg
 
 # remove unused
 apt-get -y --purge remove samba*;
